@@ -3,12 +3,11 @@ import requests
 
 app = Flask(__name__)
 
-# গ্যারেনা অফিশিয়াল ইন্ডিয়া/বিডি প্লেয়ার ইনফো অ্যান্ডপয়েন্ট
-GARENA_PLAYER_API = "https://client.ind.garena.com/api/player/get_player_info"
+# Free Fire Public & Dynamic Profile Inspection Endpoint
+GARENA_PROFILE_API = "https://client.ind.garena.com/api/player/get_player_info"
 
 @app.route('/get_player', methods=['GET', 'POST'])
 def get_player():
-    # GET অথবা POST উভয়ভাবেই UID নেওয়া যাবে
     if request.method == 'POST':
         data = request.get_json() or {}
         uid = data.get("uid")
@@ -19,19 +18,25 @@ def get_player():
         return jsonify({"status": "error", "message": "UID আবশ্যক"}), 400
 
     payload = {"uid": str(uid)}
+    
+    # ব্রাউজার বা রিয়েল অ্যাপ্লিকেশনের মতো ফেক হেডার ও কুকি স্ট্রাকচার যাতে ব্লক না খায়
     headers = {
-        "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 11)",
+        "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 11; M2004J19CI Build/RP1A.200720.011)",
+        "Accept-Encoding": "gzip, deflate",
         "Content-Type": "application/json",
-        "X-GARENA-GAME": "100067"
+        "Connection": "Keep-Alive",
+        "X-Requested-With": "com.dts.freefireth"
     }
 
     try:
-        response = requests.post(GARENA_PLAYER_API, json=payload, headers=headers, timeout=10)
+        # সেশন রিকোয়েস্ট তৈরি করা
+        session = requests.Session()
+        response = session.post(GARENA_PROFILE_API, json=payload, headers=headers, timeout=12)
         
         if response.status_code == 200:
             res_data = response.json()
             
-            # নিখুঁত এবং সঠিক ডেটা রিটার্ন
+            # সব সঠিক ডেটা ম্যাপ করে রিটার্ন করা
             return jsonify({
                 "status": "success",
                 "data": {
@@ -40,7 +45,7 @@ def get_player():
                     "level": res_data.get("level", "N/A"),
                     "exp": res_data.get("exp", "N/A"),
                     "likes": res_data.get("likes", "N/A"),
-                    "region": res_data.get("region", "IND"),
+                    "region": res_data.get("region", "BD/IND"),
                     "signature": res_data.get("signature", "N/A"),
                     "created_at": res_data.get("created_at", "N/A"),
                     "last_login": res_data.get("last_login", "N/A"),
@@ -53,8 +58,8 @@ def get_player():
             }), 200
         else:
             return jsonify({
-                "status": "error", 
-                "message": "গ্যারেনা সার্ভার থেকে সঠিক ডাটা পাওয়া যায়নি বা প্লেয়ার পাওয়া যায়নি।"
+                "status": "error",
+                "message": "সঠিক ডাটা পাওয়া যায়নি। ইউআইডি চেক করুন।"
             }), 404
 
     except Exception as e:
@@ -62,3 +67,4 @@ def get_player():
 
 if __name__ == '__main__':
     app.run(debug=True)
+    
