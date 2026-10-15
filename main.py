@@ -3,6 +3,14 @@ import requests
 
 app = Flask(__name__)
 
+@app.route('/', methods=['GET'])
+def home():
+    return jsonify({
+        "status": "success",
+        "message": "Free Fire API is running successfully!",
+        "usage": "/get_player?uid=YOUR_UID"
+    })
+
 @app.route('/get_player', methods=['GET', 'POST'])
 def get_player():
     if request.method == 'POST':
@@ -12,9 +20,9 @@ def get_player():
         uid = request.args.get("uid")
 
     if not uid:
-        return jsonify({"status": "error", "message": "UID আবশ্যক"}), 400
+        return jsonify({"status": "error", "message": "UID আবশ্যক! দয়া করে সঠিক UID প্রদান করুন।"}), 400
 
-    # বিশ্বস্ত পাবলিক ফ্রি ফায়ার এপিআই সোর্স
+    # নির্ভরযোগ্য পাবলিক ফ্রি ফায়ার প্রক্সি এপিআই সোর্স
     proxy_api_url = f"https://ff-info-api.vercel.app/api/player?uid={uid}"
 
     headers = {
@@ -27,7 +35,7 @@ def get_player():
         if response.status_code == 200:
             res_data = response.json()
             
-            # ডেটা সফলভাবে ফেচ হলে ফরম্যাট করে রিটার্ন করা
+            # নিখুঁত ফরম্যাটে প্লেয়ারের ডেটা রিটার্ন করা
             return jsonify({
                 "status": "success",
                 "data": {
